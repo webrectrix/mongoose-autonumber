@@ -1,6 +1,6 @@
 {
   "name": "mongoose-autonumber",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Mongoose plugin to auto increment a field value",
   "main": "index.js",
   "scripts": {
