@@ -2,20 +2,20 @@
 
 const mongoose = require('mongoose')
 const _ = require('lodash')
-let IdCounterModel;
+let AutoNumberModel;
 
 try {
-  IdCounterModel = mongoose.model('IdCounter')
+  AutoNumberModel = mongoose.model('AutoNumber')
 } catch (exception) {
   if (exception.name === 'MissingSchemaError') {
-    let IdCounterSchema = new mongoose.Schema({
+    let AutoNumberSchema = new mongoose.Schema({
       model: { type: String, require: true },
       field: { type: String, require: true },
       count: { type: Number, default: 0 },
       group: { type: String }
     });
     
-    IdCounterModel = mongoose.model('IdCounter', IdCounterSchema);
+    AutoNumberModel = mongoose.model('AutoNumber', AutoNumberSchema);
   } else {
     throw exception;
   }
@@ -51,22 +51,22 @@ module.exports = (schema, options) => {
         queryOptions.group = doc[options.groupField].toString();
       }
 
-      let identityCounter;
+      let counter;
       try {
-        if (!(await checkIdentityCounter(queryOptions))) {
-          identityCounter = await createIdentityCounter(queryOptions, options);
+        if (!(await checkCounter(queryOptions))) {
+          counter = await createCounter(queryOptions, options);
         } else {
-          identityCounter = await incrementIdentityCounter(queryOptions, options);
+          counter = await incrementCounter(queryOptions, options);
         }
 
-        if (_.isNil(identityCounter)) {
-          throw new Error('IdentityCounter is null.');
+        if (_.isNil(counter)) {
+          throw new Error('Counter is null.');
         }
       } catch (e) {
         return next(e);
       }
 
-      doc[options.counterField] = identityCounter.count;
+      doc[options.counterField] = counter.count;
     }
 
     next();
@@ -74,15 +74,15 @@ module.exports = (schema, options) => {
 
 };
 
-async function checkIdentityCounter(query) {
-  let identityCounter = await IdCounterModel.findOne(query);
-  return !_.isNil(identityCounter);
+async function checkCounter(query) {
+  let counter = await AutoNumberModel.findOne(query);
+  return !_.isNil(counter);
 }
 
-function createIdentityCounter(query, options) {
-  return IdCounterModel.create(_.extend(query, {count: (options.startsWith + options.incrementBy)}))
+function createCounter(query, options) {
+  return AutoNumberModel.create(_.extend(query, {count: (options.startsWith + options.incrementBy)}))
 }
 
-function incrementIdentityCounter(query, options) {
-  return IdCounterModel.findOneAndUpdate(query, {$inc: {count: options.incrementBy}}, {new: true})
+function incrementCounter(query, options) {
+  return AutoNumberModel.findOneAndUpdate(query, {$inc: {count: options.incrementBy}}, {new: true})
 }
