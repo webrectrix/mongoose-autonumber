@@ -23,10 +23,7 @@ try {
 
 
 module.exports = (schema, options) => {
-  options = _.extend({
-    startsWith: 0,
-    incrementBy: 1
-  }, options);
+  options = getOptions(options);
 
   let fields = {};
 
@@ -34,6 +31,10 @@ module.exports = (schema, options) => {
     type: String,
     require: true
   };
+
+  if (options.unique) {
+    fields[options.counterField].unique = true;
+  }
 
   schema.add(fields);
 
@@ -62,17 +63,60 @@ module.exports = (schema, options) => {
         if (_.isNil(counter)) {
           throw new Error('Counter is null.');
         }
+
+        counter = getCounter(counter.count, doc, options);
       } catch (e) {
         return next(e);
       }
 
-      doc[options.counterField] = counter.count;
+      doc[options.counterField] = counter;
     }
 
     next();
   });
 
 };
+
+function getCounter(count, record, options) {
+  let prefix = '';
+  if (options.prefix) {
+    if (options.prefix.type == 'field') {
+      if (!record[options.prefix.value]) {
+        throw new Error('Undefined prefix field');
+      }
+
+      prefix = record[options.prefix.value];
+    } else if (options.prefix.type == 'string') {
+      prefix = options.prefix.value;
+    } else {
+      throw new Error('Undefined type of prefix.');
+    }
+
+    count = prefix + options.prefix.delimiter + count;
+  }
+
+  return count;
+}
+
+function getOptions(options) {
+  let defaultOptions = {
+    startsWith: 0,
+    incrementBy: 1,
+    unique: false
+  };
+
+  if (options.prefix) {
+    defaultOptions.prefix = {
+      type: 'string',
+      delimiter: '-',
+      value: 'I'
+    };
+  }
+
+  options = _.extend(defaultOptions, options);
+
+  return options;
+}
 
 async function checkCounter(query) {
   let counter = await AutoNumberModel.findOne(query);
