@@ -81,11 +81,11 @@ function getCounter(count, record, options) {
   let prefix = '';
   if (options.prefix) {
     if (options.prefix.type == 'field') {
-      if (!record[options.prefix.value]) {
+      if (!_.get(record, options.prefix.value)) {
         throw new Error('Undefined prefix field');
       }
 
-      prefix = record[options.prefix.value];
+      prefix = _.get(record, options.prefix.value);
     } else if (options.prefix.type == 'string') {
       prefix = options.prefix.value;
     } else {

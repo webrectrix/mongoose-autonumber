@@ -1,6 +1,6 @@
 {
   "name": "@webrectrix/mongoose-autonumber",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Mongoose plugin to auto increment a field value",
   "main": "index.js",
   "scripts": {
